@@ -7,6 +7,7 @@ import { useUser } from "../context/userContext";
 
 export default function Login() {
 const API_URL = import.meta.env.VITE_API_URL;
+console.log(API_URL);
 
   const { user, setUser } = useUser();
   const navigate = useNavigate();
@@ -79,3 +80,4 @@ const API_URL = import.meta.env.VITE_API_URL;
     </div>
   );
 }
+
