@@ -1,0 +1,32 @@
+.continueButton{
+    box-shadow: 3.5px 3.5px 0px rgba(0, 0, 0, 0.25);
+    border: solid #0000001c;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #FF7F7F, #FF4C4C); 
+    color: black;
+    cursor: pointer;
+}
+
+.continueButton:hover{
+    background: linear-gradient(to bottom, #FF5A5A, #FF1A1A); 
+}
+
+.continueButton:active {
+  transform: translateY(2px); 
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2); 
+}
+
+.continueButton:disabled {
+  background: linear-gradient(to bottom, #c0c0c0, #e0e0e0); /* gris */
+  cursor: not-allowed;
+  color: #888;
+}
+
+.continueButton:disabled:hover {
+  background: linear-gradient(to bottom, #c0c0c0, #e0e0e0); /* sin cambio al hover */
+}
+
+.continueButton:disabled:active {
+  transform: none;
+  box-shadow: none;
+}

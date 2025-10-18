@@ -1,0 +1,31 @@
+.playButton{
+    box-shadow: 3.5px 3.5px 0px rgba(0, 0, 0, 0.25);
+    border: solid #0000001c;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #8EFFA6, #B5EAF0); 
+    color: white;
+    cursor: pointer;
+}
+
+.playButton:hover{
+    background: linear-gradient(to bottom, #52ff78, #70dbe7); 
+}
+.playButton:active {
+  transform: translateY(2px); 
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2); 
+}
+
+.playButton:disabled {
+  background: linear-gradient(to bottom, #c0c0c0, #e0e0e0); /* gris */
+  cursor: not-allowed;
+  color: #888;
+}
+
+.playButton:disabled:hover {
+  background: linear-gradient(to bottom, #c0c0c0, #e0e0e0); /* sin cambio al hover */
+}
+
+.playButton:disabled:active {
+  transform: none;
+  box-shadow: none;
+}
