@@ -80,4 +80,3 @@ console.log(API_URL);
     </div>
   );
 }
-
