@@ -40,14 +40,14 @@ const UserInfo = ({logout}: {logout: ()=> void}) => {
           <LogoutIcon className="" fontSize="large" />
         </button>
       </div>
-      <div className="card mt-3 lg:flex flex-col justify-between items-start py-[5px] px-[10px] ">
-        <div className="flex w-full md:w-3/4 xl:w-1/2 justify-between items-center">
+      <div className="card mt-3 w-full xl:w-[60%] lg:flex flex-col justify-between items-start py-[5px] px-[10px] ">
+        <div className="flex w-full justify-between items-center">
           <h3 className="text-lg md:text-xl text-gray-400">Catch remaining:</h3>
           <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-black text-lg font-bold">
             {user.dailyCatches}
           </span>
         </div>
-        <div className="flex w-full md:w-3/4 xl:w-1/2 justify-between items-center">
+        <div className="flex w-full justify-between items-center">
           <h3 className="text-lg md:text-xl text-gray-400">Masterball remaining:</h3>
           <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-300 text-black text-lg font-bold">
             {user.masterBalls}

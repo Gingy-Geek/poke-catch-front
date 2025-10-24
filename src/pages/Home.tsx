@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex justify-center items-center">
-      <div className="flex flex-col md:flex-row items-center w-full h-[95vh] px-4">
+      <div className="tall flex flex-col md:flex-row items-center w-full h-[95vh] px-4">
         <div className="w-full h-[100%] md:w-1/2 flex flex-col justify-center items-center">
           <div className="w-full h-[100%] lg:w-3/4 relative">
             <ScreenGame />

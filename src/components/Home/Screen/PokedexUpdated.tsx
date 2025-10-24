@@ -23,15 +23,8 @@ const PokedexUpdated = ({
           key={pokemon.id}
           src={pokemon.isShiny ? pokemon.animatedShinySprite : pokemon.animatedSprite}
           alt={pokemon.name}
-          initial={{ scale: 0, rotate: -180, opacity: 0 }}
-          animate={{
-            scale: 1,
-            rotate: 0,
-            opacity: 1,
-            transition: { type: "spring", stiffness: 120, damping: 10 },
-          }}
           className={`w-52 h-52 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] ${
-            pokemon.isShiny ? "animate-pulse" : ""
+            true ? "animate-pulse" : ""
           }`}
           onError={(e) => {
             e.currentTarget.src = pokemon.isShiny ? pokemon.shinySprite : pokemon.sprite;
@@ -58,10 +51,10 @@ const PokedexUpdated = ({
 
           <button
             onClick={retry}
-            className="continueButton flex items-center justify-center text-3xl px-4 py-2 mt-2 bg-yellow-400 hover:bg-yellow-300 rounded-xl font-bold shadow-lg transition-colors"
+            className="botones flex items-center text-3xl px-2"
           >
             CONTINUE
-            <img src={playIcon} alt="" className="ml-3 w-5 opacity-70" />
+            <img src={playIcon} alt="" className="ml-3 w-5 opacity-50" />
           </button>
         </div>
       </div>

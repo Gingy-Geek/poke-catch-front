@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Switch from "react-switch";
-import PokeList from "./PokeList";
-import { Pagination } from "./Pagination";
+import PokeList from "./Pokedex/PokeList";
+import { Pagination } from "./Pokedex/Pagination";
 import { useUser } from "../../context/userContext";
 
 const TOTAL_POKEMON = 151;
@@ -33,7 +33,7 @@ const Pokedex = () => {
 
   return (
     <div className="relative z-10 h-[100%] w-full bg-white rounded-[15px] border-[7px] border-black/10 flex flex-col justify-between items-center p-3 my-2">
-      <div className="bg-red-300 rounded-[30px] shadow-[4px_5px_1px_-2px_#00000035] px-10 py-2 m-2">
+      <div className="bg-red-300 rounded-[30px] shadow-[3.5px_3.5px_0px_rgba(0,0,0,0.25)] px-10 py-2 m-2">
         <span className="text-4xl text-white">Pokedex</span>
       </div>
 

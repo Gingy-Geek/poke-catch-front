@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Pokemon } from "../../../models/Pokemon";
 import playIcon from "../../../assets/playIcon.png";
-import "../../../css/continueButton.css";
 import { getRarityColor } from "../../../utils/rareColors";
 
 const Finished = ({
@@ -26,7 +25,7 @@ const Finished = ({
     <>
       <div className="relative flex justify-center items-center flex-1">
         <div
-          className={`absolute text-5xl z-2 top-[80%] -translate-y-1/2 font-bold transition-opacity duration-700 ${
+          className={`absolute text-5xl top-[80%] -translate-y-1/2 font-bold transition-opacity duration-700 ${
             showTitle ? "opacity-100" : "opacity-0"
           } ${caught ? "text-green-600" : "text-red-600"}`}
         >
@@ -95,10 +94,10 @@ const Finished = ({
         >
           <button
             onClick={nextScreen}
-            className="continueButton flex items-center text-3xl px-2"
+            className="botones flex items-center text-3xl px-2"
           >
             CONTINUE
-            <img src={playIcon} alt="" className="ml-5 w-5 opacity-30" />
+            <img src={playIcon} alt="" className="ml-5 w-5 opacity-50" />
           </button>
         </div>
       </div>
