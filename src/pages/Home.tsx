@@ -7,6 +7,7 @@ import ScreenGame from "../components/Home/ScreenGame";
 import UserInfo from "../components/Home/UserInfo";
 import Pokedex from "../components/Home/Pokedex";
 import { useUser } from "../context/userContext";
+import LoadingPokeball from "../components/LoadingPokeball";
 
 export default function Home() {
   const { user, setUser, loading } = useUser();
@@ -25,7 +26,7 @@ export default function Home() {
     navigate("/");
   };
 
-  if (loading) return <p>Cargando...</p>;
+  if (loading) return <LoadingPokeball />;
   if (!user) return <Navigate to="/login" />;
 
   return (

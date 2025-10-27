@@ -61,9 +61,10 @@ const Finished = ({
             <span
                 className={`font-bold ${
                 pokemon.isShiny
-                    ? "text-yellow-400 drop-shadow-lg"
+                    ? "text-yellow-400"
                     : "text-blue-500 drop-shadow-sm"
                 }`}
+                style={{textShadow: pokemon.isShiny ? "1px 1px 0px black" : "unset"}}
             >
                 {pokemon.isShiny ? "Shiny " : ""}
                 {pokemon.name.toUpperCase()}
@@ -76,9 +77,11 @@ const Finished = ({
             <span
                 className={`font-bold ${
                 pokemon.isShiny
-                    ? "text-yellow-400 drop-shadow-lg"
+                    ? "text-yellow-400"
                     : "text-blue-500 drop-shadow-sm"
                 }`}
+                style={{textShadow: pokemon.isShiny ? "1px 1px 0px black" : "unset"}}
+
             >
                 {pokemon.isShiny ? "Shiny " : ""}
                 {pokemon.name.toUpperCase()}

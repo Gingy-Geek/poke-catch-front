@@ -4,6 +4,7 @@ import normalPB from "../../../assets/normalPB.png";
 import { baseCatchRates } from "../../../config/pokemonRates";
 import type { UserData } from "../../../models/UserData";
 import { getRarityColor } from "../../../utils/rareColors";
+import '../../../css/animation.css'
 
 const PokemonShown = ({
   handleCatch,
@@ -30,17 +31,11 @@ const PokemonShown = ({
         </div>
         <img
           style={{ imageRendering: "pixelated" }}
-          src={
-            pokemon.isShiny
-              ? pokemon.animatedShinySprite
-              : pokemon.animatedSprite
-          }
+          src={pokemon.isShiny ? pokemon.animatedShinySprite : pokemon.animatedSprite}
           alt={pokemon.name}
-          className="w-50 h-50 object-contain pokemon-fade"
+          className="w-50 h-50 object-contain animate-slide-up"
           onError={(e) => {
-            e.currentTarget.src = pokemon.isShiny
-              ? pokemon.shinySprite
-              : pokemon.sprite;
+            e.currentTarget.src = pokemon.isShiny ? pokemon.shinySprite : pokemon.sprite;
           }}
         />
       </div>
@@ -48,16 +43,17 @@ const PokemonShown = ({
         <span className="text-base lg:text-lg">
           A wild{" "}
           {pokemon.isShiny && (
-            <span className="uppercase font-bold text-yellow-400 drop-shadow-lg">
+            <span className="uppercase font-bold text-yellow-400" style={{textShadow: "1px 1px 0px black"}}>
               Shiny{" "}
             </span>
           )}
           <span
             className={`uppercase font-bold ${
               pokemon.isShiny
-                ? "text-yellow-400 drop-shadow-lg"
+                ? "text-yellow-400"
                 : "text-blue-500"
             }`}
+            style={{textShadow: pokemon.isShiny ? "1px 1px 0px black" : "unset"}}
           >
             {pokemon.name}
           </span>{" "}

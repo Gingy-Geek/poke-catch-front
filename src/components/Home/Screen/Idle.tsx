@@ -1,4 +1,4 @@
-import questionMark from "../../../assets/questionMark.png";
+import questionMark from "../../../assets/question.png";
 import playIcon from "../../../assets/playIcon.png";
 import type { UserData } from "../../../models/UserData";
 

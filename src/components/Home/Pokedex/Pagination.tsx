@@ -16,16 +16,15 @@ export const Pagination = ({ page, totalPages, setPage }: PaginationProps) => {
     if (page < totalPages) setPage(page + 1);
   };
 
-  const configureSVG = (svg: SVGSVGElement) => {
-    // Fill y tamaño inicial
+  const configureSVG = (svg: SVGSVGElement, flipShadow = false) => {
     svg.setAttribute("fill", "#fb6767ff");
-    svg.setAttribute("width", "100");
+    svg.setAttribute("width", "97");
     svg.setAttribute("height", "auto");
     svg.style.cursor = "pointer";
     svg.style.transition = "transform 0.1s, fill 0.2s, filter 0.2s";
 
-    // Shadow inicial estilo pixelado
-    svg.style.filter = "drop-shadow(3.5px 3.5px 0px rgba(0,0,0,0.25))";
+    const shadowX = flipShadow ? -2.3 : 3.5;
+    svg.style.filter = `drop-shadow(${shadowX}px 3.5px 0px rgba(0,0,0,0.25))`;
 
     // Hover
     svg.addEventListener("mouseenter", () => {
@@ -34,17 +33,19 @@ export const Pagination = ({ page, totalPages, setPage }: PaginationProps) => {
     svg.addEventListener("mouseleave", () => {
       svg.setAttribute("fill", "#fb6767ff");
       svg.style.transform = "scale(1)";
-      svg.style.filter = "drop-shadow(3.5px 3.5px 0px rgba(0,0,0,0.25))";
+      svg.style.filter = `drop-shadow(${shadowX}px 3.5px 0px rgba(0,0,0,0.25))`;
     });
 
     // Presionar / click
     const pressDown = () => {
       svg.style.transform = "scale(0.9)";
-      svg.style.filter = "drop-shadow(1.5px 1.5px 0px rgba(0,0,0,0.25))";
+      svg.style.filter = `drop-shadow(${
+        shadowX / 2
+      }px 1.5px 0px rgba(0,0,0,0.25))`;
     };
     const release = () => {
       svg.style.transform = "scale(1)";
-      svg.style.filter = "drop-shadow(3.5px 3.5px 0px rgba(0,0,0,0.25))";
+      svg.style.filter = `drop-shadow(${shadowX}px 3.5px 0px rgba(0,0,0,0.25))`;
     };
 
     svg.addEventListener("mousedown", pressDown);
@@ -54,16 +55,19 @@ export const Pagination = ({ page, totalPages, setPage }: PaginationProps) => {
   };
 
   return (
-    <div className="flex w-full justify-around my-[-15px]">
+    <div className="flex w-full justify-around items-center my-[-15px]">
       <ReactSVG
         src={Arrow}
         beforeInjection={(svg) => configureSVG(svg)}
         onClick={handlePrev}
       />
+      <span className="text-3xl text-[#ffa2a2]">
+        {page} / {totalPages}
+      </span>
 
       <ReactSVG
         src={Arrow}
-        beforeInjection={(svg) => configureSVG(svg)}
+        beforeInjection={(svg) => configureSVG(svg, true)} // flipShadow=true
         className="transform scale-x-[-1]"
         onClick={handleNext}
       />

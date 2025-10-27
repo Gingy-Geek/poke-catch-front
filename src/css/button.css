@@ -27,6 +27,13 @@
   opacity: 0.7;
 }
 
+/* Simular el "activo" */
+.botones.active {
+  background-color: #ffe7e7;
+  transform: translateY(2px);
+  box-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+}
+
 .botones.shiny {
     background-color: #ffeb9b; /* dorado base */
 }

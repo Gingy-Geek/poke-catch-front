@@ -1,55 +1,156 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Switch from "react-switch";
 import PokeList from "./Pokedex/PokeList";
 import { Pagination } from "./Pokedex/Pagination";
 import { useUser } from "../../context/userContext";
-
-const TOTAL_POKEMON = 151;
-const POKEMON_PER_PAGE = 5;
+import Filter from "../../assets/filter.png";
 
 const Pokedex = () => {
-  const {newPokemonRender, setNewPokemonRender} = useUser()
+  const { newPokemonRender, setNewPokemonRender, user } = useUser();
   const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(TOTAL_POKEMON / POKEMON_PER_PAGE);
-
-  const pageIds = useMemo(() => {
-    const start = (page - 1) * POKEMON_PER_PAGE + 1;
-    return Array.from({ length: POKEMON_PER_PAGE }, (_, i) => start + i).filter(
-      (id) => id <= TOTAL_POKEMON
-    );
-  }, [page]);
   const [isShinyList, setIsShinyList] = useState(false);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterType, setFilterType] = useState<"All" | "Seen" | "Captured">(
+    "All"
+  );
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenFilter = (e: React.MouseEvent) => {
+    e.stopPropagation(); //  evita que dispare el listener del "click fuera"
+    setIsFilterOpen((prev) => !prev);
+  };
+  const handleFilter = (type: any) => {
+    setFilterType(type);
+    setIsFilterOpen(false);
+    setPage(1)
+  };
+  // Detectar click fuera del menú
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    if (isFilterOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isFilterOpen]);
+
+  // 🔹 Ajustar dinámicamente según altura de pantalla
+  useEffect(() => {
+    const handleResize = () => {
+      const height = window.innerHeight;
+      if (height > 1000) setItemsPerPage(7);
+      else setItemsPerPage(5);
+    };
+
+    handleResize(); // ejecutar al montar
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const filteredIds = useMemo(() => {
+  if (!user) return [];
+
+  return Object.values(user.pokedex)
+    .filter((poke) => {
+      const variantKey = isShinyList ? "shiny" : "normal";
+      const variant = poke.variants[variantKey];
+
+      if (!variant) return false;
+
+      switch (filterType) {
+        case "Captured":
+          return variant.obtained > 0;
+        case "Seen":
+          return variant.seen > 0 && variant.obtained === 0;
+        case "All":
+        default:
+          return true;
+      }
+    })
+    .map((poke) => poke.id);
+}, [user, isShinyList, filterType]);
+
+
+  const totalPages = useMemo(
+  () => Math.ceil(filteredIds.length / itemsPerPage),
+  [filteredIds.length, itemsPerPage]
+);
+
+const pageIds = useMemo(() => {
+  const start = (page - 1) * itemsPerPage;
+  return filteredIds.slice(start, start + itemsPerPage);
+}, [filteredIds, page, itemsPerPage]);
 
   useEffect(() => {
-    if (newPokemonRender && newPokemonRender?.id) {
-      const newPage = Math.ceil(newPokemonRender.id / POKEMON_PER_PAGE);
+    if (newPokemonRender?.id) {
+      const newPage = Math.ceil(newPokemonRender.id / itemsPerPage);
       setPage(newPage);
-      setIsShinyList(newPokemonRender.isShiny)
-      console.log("OLLOO");
-      setNewPokemonRender(null)
-      
+      setIsShinyList(newPokemonRender.isShiny);
+      setNewPokemonRender(null);
     }
-  }, [newPokemonRender]);
+  }, [newPokemonRender, itemsPerPage]);
 
   return (
     <div className="relative z-10 h-[100%] w-full bg-white rounded-[15px] border-[7px] border-black/10 flex flex-col justify-between items-center p-3 my-2">
-      <div className="bg-red-300 rounded-[30px] shadow-[3.5px_3.5px_0px_rgba(0,0,0,0.25)] px-10 py-2 m-2">
-        <span className="text-4xl text-white">Pokedex</span>
+      <div className="bg-red-300 rounded-[30px] shadow-[3.5px_3.5px_0px_rgba(0,0,0,0.25)] px-8 py-1 m-2">
+        <span className="text-3xl text-white">Pokedex</span>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <span>Normal</span>
-        <Switch
-          onChange={() => setIsShinyList(!isShinyList)}
-          checked={isShinyList}
-          offColor="#ccc"
-          onColor="#FACC15"
-          uncheckedIcon={false}
-          checkedIcon={false}
-          height={20}
-          width={40}
-        />
-        <span>Shiny</span>
+      {/* HEADER */}
+      <div className="w-full flex items-center justify-between">
+        <div className="w-[20%] flex flex-col justify-start text-[0.5rem]"></div>
+        <div className="w-[60%] flex space-x-2 justify-center">
+          <span>Normal</span>
+          <Switch
+            onChange={() => {setIsShinyList(!isShinyList); setPage(1)}}
+            checked={isShinyList}
+            offColor="#ccc"
+            onColor="#FACC15"
+            uncheckedIcon={false}
+            checkedIcon={false}
+            height={20}
+            width={40}
+          />
+          <span>Shiny</span>
+        </div>
+        <div className="w-[20%] flex justify-end">
+          <img
+            src={Filter}
+            alt="Sort"
+            className={`botones h-9 w-9 p-1 transition-all duration-100 ${
+              isFilterOpen ? "active" : ""
+            }`}
+            onClick={handleOpenFilter}
+          />
+          {isFilterOpen && (
+            <div
+              ref={sortRef}
+              className="absolute right-15 bg-white border border-gray-200 shadow-lg rounded-xl w-32 p-2 text-sm animate-fadeIn z-2"
+            >
+              {["All", "Seen", "Captured"].map((type) => (
+                <div
+                  key={type}
+                  onClick={() => handleFilter(type)}
+                  className={`cursor-pointer px-3 py-1 rounded-md mb-1 text-center ${
+                    filterType === type
+                      ? "bg-red-300 text-white font-semibold"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="w-full flex justify-center">

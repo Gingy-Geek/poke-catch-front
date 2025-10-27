@@ -9,17 +9,17 @@ const Searching = ({ loadingMessage }: { loadingMessage: string }) => {
           <img
             src={normalPB}
             className="w-25 h-25 animate-bounce"
-            style={{ animationDelay: "0s" }}
+            style={{ animationDelay: "0s", animationFillMode: "both" }}
           />
           <img
             src={specialPB}
             className="w-25 h-25 animate-bounce"
-            style={{ animationDelay: "0.2s" }}
+            style={{ animationDelay: "0.2s", animationFillMode: "both" }}
           />
           <img
             src={normalPB}
             className="w-25 h-25 animate-bounce hidden md:block"
-            style={{ animationDelay: "0.4s" }}
+            style={{ animationDelay: "0.4s", animationFillMode: "both" }}
           />
         </div>
       </div>

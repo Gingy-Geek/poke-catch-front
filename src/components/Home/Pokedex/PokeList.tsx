@@ -4,6 +4,7 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import CloseIcon from "@mui/icons-material/Close";
 
 import Question from "../../../assets/question.png";
+import ShinyIcon from "../../../assets/shines.png";
 
 import "../../../css/button.css";
 import "../../../css/cards.css";
@@ -11,6 +12,8 @@ import { useUser } from "../../../context/userContext";
 import type { PokemonData } from "../../../models/UserData";
 import { getTypeColor } from "../../../utils/typeColors";
 import { getRarityColor } from "../../../utils/rareColors";
+import { motion, AnimatePresence } from "framer-motion";
+
 interface PlaceHolder {
   id: number;
   sprite: string;
@@ -30,13 +33,17 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
   const [selectedPoke, setSelectedPoke] = useState<PokemonData | null>(null);
   const [pokeData, setPokeData] = useState<PlaceHolder[]>([]);
 
+  const capitalizeFirstLetter = (word: string) => {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  };
+
   const handleOpenModal = (poke: PlaceHolder) => {
-    const pokemon = user.pokedex[poke.id]
+    const pokemon = user.pokedex[poke.id];
     if (pokemon) {
-      if(pokemon.variants.normal.obtained > 0 && !isShinyList){
+      if (pokemon.variants.normal.obtained > 0 && !isShinyList) {
         setSelectedPoke(pokemon);
-      }else if(pokemon.variants.shiny.obtained > 0 && isShinyList){
-        setSelectedPoke(pokemon)
+      } else if (pokemon.variants.shiny.obtained > 0 && isShinyList) {
+        setSelectedPoke(pokemon);
       }
     }
   };
@@ -72,10 +79,16 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
   );
 
   const playAudio = () => {
-    if (selectedPoke && selectedPoke.audio) {
+    if (selectedPoke?.audio) {
+      console.log(selectedPoke.audio)
       const audio = new Audio(selectedPoke.audio);
-      audio.volume = 0.1
-      audio.play();
+      audio.volume = 0.1;
+      audio
+        .play()
+        .then(() => {
+          console.log("Reproducción iniciada")
+        })
+        .catch((err) => console.error("Error al reproducir el audio:", err));
     }
   };
 
@@ -99,39 +112,69 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
 
   return (
     <div className="w-full px-0">
-      {pokeData.map((poke, i) => (
-        <div
-          key={i}
-          className={`botones ${isShinyList ? "shiny" : ""} group flex items-center w-full pl-1.5 my-3 cursor-pointer`}
-          onClick={() => handleOpenModal(poke)}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${listIds.join("-")}-${isShinyList}-${pokeData.length}`}
+          variants={{
+            hidden: { opacity: 1 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.04 },
+            },
+          }}
+          initial="hidden"
+          animate="show"
+          exit="hidden"
         >
-          <div className="w-[15%]">#{poke.id}</div>
-          <div className="md:w-[18%] py-2 text-center">
-            <div className="w-15 h-15 mx-auto my-[-6px] flex justify-center items-center">
-              <img
-                style={{ imageRendering: "pixelated" }}
-                src={poke.sprite}
-                alt="icon"
-                className={`${poke.obtained == 0 ? "grayscale" : ""} max-w-full max-h-full object-contain`}
-                onError={(e) => {
-                  const target = e.currentTarget as HTMLImageElement;
-                  target.src = poke.spriteFallback;
-                }}
-              />
-            </div>
-          </div>
-          <div className="w-[40%] md:w-[45%] md:ml-2">{poke.name}</div>
-          <div className={`w-[30%] xl:px-3 ml-[2px] self-stretch flex items-center justify-between
-          [border-radius:20px_8px_8px_0px]
-          ${isShinyList
-            ? "bg-yellow-300 group-hover:bg-yellow-400 group-active:bg-yellow-500"
-            : "bg-gray-200 group-hover:bg-red-200 group-active:bg-red-200"
-          }`}>
-            <span className="text-xs md:text-base">Captured:</span>
-            <span className="text-xs md:text-base">{poke.obtained}</span>
-          </div>
-        </div>
-      ))}
+          {pokeData.map((poke, i) => (
+            <motion.div
+              key={i}
+              className={`botones ${
+                isShinyList ? "shiny" : ""
+              } group flex items-center w-full pl-1.5 my-3 cursor-pointer`}
+              onClick={() => handleOpenModal(poke)}
+              variants={{
+                hidden: { opacity: 0, y: 10 },
+                show: { opacity: 1, y: 0 },
+              }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="w-[15%]">#{poke.id}</div>
+              <div className="md:w-[18%] py-2 text-center">
+                <div className="w-15 h-15 mx-auto my-[-6px] flex justify-center items-center">
+                  <img
+                    style={{ imageRendering: "pixelated" }}
+                    src={poke.sprite}
+                    alt="icon"
+                    className={`${
+                      poke.obtained === 0 ? "grayscale" : ""
+                    } max-w-full max-h-full object-contain`}
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      target.src = poke.spriteFallback;
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="w-[40%] md:w-[45%] md:ml-2">
+                {capitalizeFirstLetter(poke.name)}
+              </div>
+              <div
+                className={`w-[30%] xl:px-3 ml-[2px] self-stretch flex items-center justify-between
+            [border-radius:20px_8px_8px_0px]
+            ${
+              isShinyList
+                ? "bg-yellow-300 group-hover:bg-yellow-400 group-active:bg-yellow-500"
+                : "bg-gray-200 group-hover:bg-red-200 group-active:bg-red-200"
+            }`}
+              >
+                <span className="text-xs md:text-base">Captured:</span>
+                <span className="text-xs md:text-base">{poke.obtained}</span>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
 
       <Modal
         isOpen={!!selectedPoke}
@@ -143,12 +186,20 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
         {selectedPoke && (
           <div className="flex flex-col mx-2">
             <div
-              className="relative rounded-[15px] flex items-center shadow-[0px_11px_0px_-2px_#00000052,inset_0_0_0_4px_rgba(0,0,0,0.05)] p-3"
+              className="relative rounded-[15px] flex items-center shadow-[0px_11px_0px_-2px_#00000052,inset_0_0_0_4px_rgba(0,0,0,0.05)] p-3 z-1"
               style={{ background: getTypeColor(selectedPoke.types) }}
             >
               <span className="text-lg">#{selectedPoke.id}</span>
-              <span className="ml-4 text-4xl text-black [text-shadow:2px_2px_1px_#00000042]">
-                {selectedPoke.name}
+              <span
+                className={`ml-4 text-4xl 
+                ${isShinyList ? "text-yellow-400" : "text-black"}`}
+                style={{
+                  textShadow: isShinyList
+                    ? "2px 2px 3px #00000066"
+                    : "2px 2px 1px #00000042",
+                }}
+              >
+                {capitalizeFirstLetter(selectedPoke.name)}
               </span>
               <button
                 className="botones absolute right-[3%] flex"
@@ -157,7 +208,15 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
                 <CloseIcon className="m-0 p-0" fontSize="small" />
               </button>
             </div>
-            <div className="p-2 mt-[-25px]  bg-gray-200 rounded-[15px] border-[7px] border-black/10">
+            <div className="relative p-2 md:p-5 mt-[-25px]  bg-gray-200 rounded-[15px] border-[7px] border-black/10">
+              {isShinyList && (
+                <img
+                  src={ShinyIcon}
+                  alt=""
+                  className="absolute h-15 w-15 md:h-20 md:w-20 top-10 right-5"
+                />
+              )}
+
               <div className="flex flex-col items-start mt-[20px]">
                 <span className="mb-1 text-base md:text-lg">Types:</span>
                 <div>
@@ -178,17 +237,17 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
               <div className="flex flex-col my-3">
                 <span className="mb-1 text-base md:text-lg">Weaknesses:</span>
                 <div className="flex items-center flex-wrap">
-                    {selectedPoke.weaknesses.map((weakness, i) => (
-                      <span
-                        key={i}
-                        className="rounded-[15px] border-[3px] border-black/10 px-2 text-base md:text-lg md:py-1 mr-2"
-                        style={{
-                          background: getTypeColor(selectedPoke.weaknesses[i]),
-                        }}
-                      >
-                        {weakness}
-                      </span>
-                    ))}
+                  {selectedPoke.weaknesses.map((weakness, i) => (
+                    <span
+                      key={i}
+                      className="rounded-[15px] border-[3px] border-black/10 px-2 text-base md:text-lg md:py-1 mr-2"
+                      style={{
+                        background: getTypeColor(selectedPoke.weaknesses[i]),
+                      }}
+                    >
+                      {weakness}
+                    </span>
+                  ))}
                 </div>
               </div>
               <div className="flex w-full mt-2 py-2 flex-col md:flex-row">

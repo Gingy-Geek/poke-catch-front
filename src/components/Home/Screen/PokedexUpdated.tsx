@@ -42,6 +42,8 @@ const PokedexUpdated = ({
                   ? "text-yellow-400 drop-shadow-lg"
                   : "text-blue-500"
               }`}
+              style={{textShadow: pokemon.isShiny ? "1px 1px 0px black" : "unset"}}
+
             >
               {pokemon.isShiny ? "Shiny " : ""}
               {pokemon.name}

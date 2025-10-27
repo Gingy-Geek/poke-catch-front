@@ -38,4 +38,6 @@ export type UserData = {
   pokedex: Record<string, PokemonData>;
   masterBalls: number;
   dailyCatches: number;
+  seen: number;
+  obtained: number
 };
