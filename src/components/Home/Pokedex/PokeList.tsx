@@ -80,13 +80,13 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
 
   const playAudio = () => {
     if (selectedPoke?.audio) {
-      console.log(selectedPoke.audio)
+      console.log(selectedPoke.audio);
       const audio = new Audio(selectedPoke.audio);
       audio.volume = 0.1;
       audio
         .play()
         .then(() => {
-          console.log("Reproducción iniciada")
+          console.log("Reproducción iniciada");
         })
         .catch((err) => console.error("Error al reproducir el audio:", err));
     }
@@ -113,69 +113,80 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
   return (
     <div className="w-full px-0">
       <AnimatePresence mode="wait">
-        <motion.div
-          key={`${listIds.join("-")}-${isShinyList}-${pokeData.length}`}
-          variants={{
-            hidden: { opacity: 1 },
-            show: {
-              opacity: 1,
-              transition: { staggerChildren: 0.04 },
-            },
-          }}
-          initial="hidden"
-          animate="show"
-          exit="hidden"
-        >
-          {pokeData.map((poke, i) => (
-            <motion.div
-              key={i}
-              className={`botones ${
-                isShinyList ? "shiny" : ""
-              } group flex items-center w-full pl-1.5 my-3 cursor-pointer`}
-              onClick={() => handleOpenModal(poke)}
-              variants={{
-                hidden: { opacity: 0, y: 10 },
-                show: { opacity: 1, y: 0 },
-              }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="w-[15%]">#{poke.id}</div>
-              <div className="md:w-[18%] py-2 text-center">
-                <div className="w-15 h-15 mx-auto my-[-6px] flex justify-center items-center">
-                  <img
-                    style={{ imageRendering: "pixelated" }}
-                    src={poke.sprite}
-                    alt="icon"
-                    className={`${
-                      poke.obtained === 0 ? "grayscale" : ""
-                    } max-w-full max-h-full object-contain`}
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.src = poke.spriteFallback;
-                    }}
-                  />
+        {pokeData.length === 0 ? (
+          <motion.div
+            key="no-data"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center text-4xl py-4 text-gray-500"
+          >
+            No data
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`${listIds.join("-")}-${isShinyList}-${pokeData.length}`}
+            variants={{
+              hidden: { opacity: 1 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.04 },
+              },
+            }}
+            initial="hidden"
+            animate="show"
+            exit="hidden"
+          >
+            {pokeData.map((poke, i) => (
+              <motion.div
+                key={i}
+                className={`botones ${
+                  isShinyList ? "shiny" : ""
+                } group flex items-center w-full pl-1.5 my-3 cursor-pointer`}
+                onClick={() => handleOpenModal(poke)}
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-[15%]">#{poke.id}</div>
+                <div className="md:w-[18%] py-2 text-center">
+                  <div className="w-15 h-15 mx-auto my-[-6px] flex justify-center items-center">
+                    <img
+                      style={{ imageRendering: "pixelated" }}
+                      src={poke.sprite}
+                      alt="icon"
+                      className={`${
+                        poke.obtained === 0 ? "grayscale" : ""
+                      } max-w-full max-h-full object-contain`}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        target.src = poke.spriteFallback;
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="w-[40%] md:w-[45%] md:ml-2">
-                {capitalizeFirstLetter(poke.name)}
-              </div>
-              <div
-                className={`w-[30%] xl:px-3 ml-[2px] self-stretch flex items-center justify-between
+                <div className="w-[40%] md:w-[45%] md:ml-2">
+                  {capitalizeFirstLetter(poke.name)}
+                </div>
+                <div
+                  className={`w-[30%] xl:px-3 ml-[2px] self-stretch flex items-center justify-between
             [border-radius:20px_8px_8px_0px]
             ${
               isShinyList
                 ? "bg-yellow-300 group-hover:bg-yellow-400 group-active:bg-yellow-500"
                 : "bg-gray-200 group-hover:bg-red-200 group-active:bg-red-200"
             }`}
-              >
-                <span className="text-xs md:text-base">Captured:</span>
-                <span className="text-xs md:text-base">{poke.obtained}</span>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+                >
+                  <span className="text-xs md:text-base">Captured:</span>
+                  <span className="text-xs md:text-base">{poke.obtained}</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </AnimatePresence>
-
       <Modal
         isOpen={!!selectedPoke}
         onRequestClose={() => setSelectedPoke(null)}

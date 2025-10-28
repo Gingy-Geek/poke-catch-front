@@ -37,7 +37,7 @@ const ScreenGame = () => {
   const [animation, setAnimation] = useState<string>("");
   const [caught, setCaught] = useState<boolean>(false);
   const [isNewPokemon, setIsNewPokemon] = useState<boolean>(false);
-  const [totalObtained, setTotalObtained] = useState<number>(user.obtained)
+  const [totalObtained, setTotalObtained] = useState<number>(user.obtained);
 
   const nextScreen = async () => {
     if (isNewPokemon) {
@@ -51,7 +51,7 @@ const ScreenGame = () => {
     setUser({
       ...user,
       pokedex: dummyPokedex,
-      obtained: totalObtained
+      obtained: totalObtained,
     });
 
     let pokeRender = {
@@ -104,7 +104,7 @@ const ScreenGame = () => {
       if (data.caught) {
         setPhase("catching");
         setAnimation(success);
-        setTotalObtained(data.totalObtained)
+        setTotalObtained(data.totalObtained);
       } else {
         setPhase("catching");
         setAnimation(fail);
@@ -118,7 +118,8 @@ const ScreenGame = () => {
 
   const play = async () => {
     if (!user) return;
-
+    console.log(user.rollResetAt);
+    
     setLoading(true);
     setPhase("searching");
     const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 2000));
@@ -132,8 +133,10 @@ const ScreenGame = () => {
         }),
       });
 
-      if (!res.ok) throw new Error("Error en la respuesta");
       const data: any = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Request error");
+      }
       const pokemon: Pokemon = data.pokemon;
       const pokemonData: PokemonData = {
         ...pokemon,
@@ -149,7 +152,9 @@ const ScreenGame = () => {
       setUser({
         ...user,
         dailyCatches: data.dailyCatches,
-        seen: data.totalSeen
+        seen: data.totalSeen,
+        rollResetAt: data.rollResetAt
+
         // pokedex NO se toca aquí
       });
       setIsNewPokemon(data.isNewPokemon);
@@ -176,8 +181,8 @@ const ScreenGame = () => {
       img.onerror = () => {
         img.src = fallbackImage;
       };
-    } catch (err) {
-      console.error("Error al traer pokemon:", err);
+    } catch (err: any) {
+      alert("Error searching pokemon: " + err.message);
       setPokemon(null);
       setLoading(false);
       setPhase("idle");
@@ -191,7 +196,7 @@ const ScreenGame = () => {
     >
       <InfoBubble />
       {phase == "idle" ? (
-        <Idle play={play} user={user} />
+        <Idle play={play} user={user} setUser={setUser} />
       ) : phase == "searching" && loading ? (
         <Searching loadingMessage={loadingMessage} />
       ) : phase == "pokemon_shown" ? (
@@ -207,7 +212,7 @@ const ScreenGame = () => {
       ) : phase == "updated_pokedex" ? (
         <PokedexUpdated pokemon={pokemon!} retry={reset} />
       ) : (
-        <div>Error... click here to reset</div>
+        <div onClick={reset}>Error... click HERE to reset</div>
       )}
     </div>
   );

@@ -39,5 +39,6 @@ export type UserData = {
   masterBalls: number;
   dailyCatches: number;
   seen: number;
-  obtained: number
+  obtained: number;
+  rollResetAt?: number
 };

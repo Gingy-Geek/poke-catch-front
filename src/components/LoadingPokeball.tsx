@@ -7,7 +7,7 @@ export default function LoadingPokeball() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-        className="relative w-16 h-16 rounded-full border-[4px] border-black overflow-hidden bg-white shadow-[0_4px_0_rgba(0,0,0,0.2)]"
+        className="relative w-16 h-16 rounded-full border-[4px] border-black overflow-hidden bg-white"
       >
         {/* Parte superior */}
         <div className="absolute top-0 left-0 w-full h-1/2 bg-red-500 border-b-[4px] border-black"></div>

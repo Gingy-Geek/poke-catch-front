@@ -7,6 +7,7 @@ import Filter from "../../assets/filter.png";
 
 const Pokedex = () => {
   const { newPokemonRender, setNewPokemonRender, user } = useUser();
+  if(!user) return
   const [page, setPage] = useState(1);
   const [isShinyList, setIsShinyList] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -14,18 +15,22 @@ const Pokedex = () => {
   const [filterType, setFilterType] = useState<"All" | "Seen" | "Captured">(
     "All"
   );
+  const totalPokemon = 151;
   const sortRef = useRef<HTMLDivElement>(null);
 
+  // Abrir/cerrar filtro
   const handleOpenFilter = (e: React.MouseEvent) => {
-    e.stopPropagation(); //  evita que dispare el listener del "click fuera"
+    e.stopPropagation();
     setIsFilterOpen((prev) => !prev);
   };
-  const handleFilter = (type: any) => {
+
+  const handleFilter = (type: "All" | "Seen" | "Captured") => {
     setFilterType(type);
     setIsFilterOpen(false);
-    setPage(1)
+    setPage(1);
   };
-  // Detectar click fuera del menú
+
+  // Click fuera para cerrar filtro
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
@@ -33,68 +38,69 @@ const Pokedex = () => {
       }
     };
 
-    if (isFilterOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
+    if (isFilterOpen) document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, [isFilterOpen]);
 
-  // 🔹 Ajustar dinámicamente según altura de pantalla
+  // Ajustar items por pantalla
   useEffect(() => {
     const handleResize = () => {
       const height = window.innerHeight;
-      if (height > 1000) setItemsPerPage(7);
-      else setItemsPerPage(5);
+      setItemsPerPage(height > 1000 ? 7 : 5);
     };
-
-    handleResize(); // ejecutar al montar
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // IDs completos 1..151
+  const allIds = useMemo(() => Array.from({ length: totalPokemon }, (_, i) => i + 1), []);
+
+  // Filtrado
   const filteredIds = useMemo(() => {
-  if (!user) return [];
+    if (!user) return allIds;
 
-  return Object.values(user.pokedex)
-    .filter((poke) => {
+    return allIds.filter((id) => {
+      const poke = user.pokedex[id];
       const variantKey = isShinyList ? "shiny" : "normal";
+
+      // Si no hay datos del poke
+      if (!poke?.variants[variantKey]) {
+        return filterType === "All"; // solo mostramos en "All"
+      }
+
       const variant = poke.variants[variantKey];
-
-      if (!variant) return false;
-
       switch (filterType) {
         case "Captured":
-          return variant.obtained > 0;
+          return (variant?.obtained ?? 0) > 0;
         case "Seen":
-          return variant.seen > 0 && variant.obtained === 0;
+          return (variant?.seen ?? 0)  > 0 && (variant?.obtained ?? 0) === 0;
         case "All":
         default:
           return true;
       }
-    })
-    .map((poke) => poke.id);
-}, [user, isShinyList, filterType]);
+    });
+  }, [user, isShinyList, filterType, allIds]);
 
-
+  // Pagination
   const totalPages = useMemo(
-  () => Math.ceil(filteredIds.length / itemsPerPage),
-  [filteredIds.length, itemsPerPage]
-);
+    () => Math.ceil(filteredIds.length / itemsPerPage),
+    [filteredIds.length, itemsPerPage]
+  );
 
-const pageIds = useMemo(() => {
-  const start = (page - 1) * itemsPerPage;
-  return filteredIds.slice(start, start + itemsPerPage);
-}, [filteredIds, page, itemsPerPage]);
+  const pageIds = useMemo(() => {
+    const start = (page - 1) * itemsPerPage;
+    return filteredIds.slice(start, start + itemsPerPage);
+  }, [filteredIds, page, itemsPerPage]);
 
+  // Nuevo Pokémon enfocado
   useEffect(() => {
     if (newPokemonRender?.id) {
       const newPage = Math.ceil(newPokemonRender.id / itemsPerPage);
       setPage(newPage);
       setIsShinyList(newPokemonRender.isShiny);
       setNewPokemonRender(null);
+      setFilterType("All")
     }
   }, [newPokemonRender, itemsPerPage]);
 
@@ -110,7 +116,7 @@ const pageIds = useMemo(() => {
         <div className="w-[60%] flex space-x-2 justify-center">
           <span>Normal</span>
           <Switch
-            onChange={() => {setIsShinyList(!isShinyList); setPage(1)}}
+            onChange={() => { setIsShinyList(!isShinyList); setPage(1); }}
             checked={isShinyList}
             offColor="#ccc"
             onColor="#FACC15"
@@ -125,9 +131,7 @@ const pageIds = useMemo(() => {
           <img
             src={Filter}
             alt="Sort"
-            className={`botones h-9 w-9 p-1 transition-all duration-100 ${
-              isFilterOpen ? "active" : ""
-            }`}
+            className={`botones h-9 w-9 p-1 transition-all duration-100 ${isFilterOpen ? "active" : ""}`}
             onClick={handleOpenFilter}
           />
           {isFilterOpen && (
@@ -138,14 +142,14 @@ const pageIds = useMemo(() => {
               {["All", "Seen", "Captured"].map((type) => (
                 <div
                   key={type}
-                  onClick={() => handleFilter(type)}
+                  onClick={() => handleFilter(type as any)}
                   className={`cursor-pointer px-3 py-1 rounded-md mb-1 text-center ${
                     filterType === type
                       ? "bg-red-300 text-white font-semibold"
                       : "hover:bg-gray-100"
                   }`}
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {type}
                 </div>
               ))}
             </div>
@@ -153,10 +157,12 @@ const pageIds = useMemo(() => {
         </div>
       </div>
 
+      {/* LIST */}
       <div className="w-full flex justify-center">
         <PokeList isShinyList={isShinyList} listIds={pageIds} />
       </div>
 
+      {/* PAGINATION */}
       <div className="w-full">
         <Pagination page={page} totalPages={totalPages} setPage={setPage} />
       </div>
