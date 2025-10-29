@@ -3,6 +3,7 @@ import Modal from "react-modal";
 import CloseIcon from "@mui/icons-material/Close";
 import avatars from "../../../utils/avatars";
 import { motion, AnimatePresence } from "framer-motion";
+import LoadingPokeball from "../../LoadingPokeball";
 
 type UserPodium = {
   displayName: string;
@@ -18,64 +19,72 @@ type PodiumModalProps = {
 
 const ITEMS_PER_PAGE = 5;
 const ITEM_HEIGHT = 60; // altura fija por ítem
+const CHUNK_SIZE = 100; // cada fetch trae 100 usuarios
 
 const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
-  const [users, setUsers] = useState<UserPodium[]>([]);
+  const [allUsers, setAllUsers] = useState<UserPodium[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [nextPageUsers, setNextPageUsers] = useState<UserPodium[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loadingChunk, setLoadingChunk] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const fetchPodium = async (pageNum: number) => {
-    try {
-      const res = await fetch(
-        `${API_URL}/api/users/podium?page=${pageNum}&perPage=${ITEMS_PER_PAGE}`
-      );
-      if (!res.ok) throw new Error("Error fetching podium");
-      const data = await res.json();
-      setUsers(data.users);
-      setTotalPages(data.totalPages);
-    } catch (err) {
-      console.error(err);
-    } 
-  };
+  // Indica cuántos chunks hemos cargado
+  const chunksLoaded = Math.ceil(allUsers.length / CHUNK_SIZE);
 
-  const preloadNextPage = async (nextPageNum: number) => {
-    if (nextPageNum > totalPages) return;
+  // Cargar un chunk de usuarios
+  const loadChunk = async (chunkIndex: number) => {
+    setLoadingChunk(true);
     try {
+      const start = chunkIndex * CHUNK_SIZE;
       const res = await fetch(
-        `${API_URL}/api/users/podium?page=${nextPageNum}&perPage=${ITEMS_PER_PAGE}`
+        `${API_URL}/api/users/podium?start=${start}&limit=${CHUNK_SIZE}`
       );
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(`Error fetching chunk ${chunkIndex}`);
       const data = await res.json();
-      setNextPageUsers(data.users);
+      setAllUsers((prev) => [...prev, ...data.users]);
+      setTotalUsers(data.total);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingChunk(false);
     }
   };
 
+  // Obtener los usuarios visibles para la página actual
+  const displayedUsers = allUsers.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
+  );
+
+  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
+
+  // Efecto para cargar primer chunk al abrir modal
   useEffect(() => {
-    if (isOpen) {
-      fetchPodium(page);
-      preloadNextPage(page + 1);
+    if (isOpen && allUsers.length === 0) {
+      loadChunk(0);
+      setPage(1);
     }
-  }, [isOpen, page]);
+  }, [isOpen]);
+
+  // Efecto para precargar siguiente chunk si nos acercamos al final
+  useEffect(() => {
+    const lastVisibleIndex = page * ITEMS_PER_PAGE;
+    if (
+      lastVisibleIndex > allUsers.length &&
+      allUsers.length < totalUsers &&
+      !loadingChunk
+    ) {
+      loadChunk(chunksLoaded); // carga el siguiente chunk
+    }
+  }, [page, allUsers, totalUsers, chunksLoaded, loadingChunk]);
 
   const handleNext = () => {
-    if (page < totalPages) {
-      // reemplazamos inmediatamente con los datos precargados
-      setUsers(nextPageUsers);
-      setPage((prev) => prev + 1);
-      // precargamos la siguiente
-      preloadNextPage(page + 2);
-    }
+    if (page < totalPages) setPage((prev) => prev + 1);
   };
 
   const handlePrev = () => {
-    if (page > 1) {
-      setPage((prev) => prev - 1);
-    }
+    if (page > 1) setPage((prev) => prev - 1);
   };
 
   return (
@@ -102,77 +111,89 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
         className="flex flex-col justify-start gap-3"
         style={{ minHeight: ITEMS_PER_PAGE * ITEM_HEIGHT }}
       >
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={page}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col gap-2"
-          >
-            {users.map((user, i) => {
-              // Calcular ranking absoluto
-              const rank = (page - 1) * ITEMS_PER_PAGE + i + 1;
+        {loadingChunk && allUsers.length === 0 ? (
+          // Loader inicial
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-transparent z-50">
+            <LoadingPokeball />
+          </div>
+        ) : allUsers.length === 0 ? (
+          // No hay datos después de cargar
+          <div className="flex justify-center items-center h-full text-gray-500">
+            No data
+          </div>
+        ) : (
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div
+              key={page}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-2"
+            >
+              {displayedUsers.map((user, i) => {
+                // Calcular ranking absoluto
+                const rank = (page - 1) * ITEMS_PER_PAGE + i + 1;
 
-              // Definir colores según el ranking absoluto
-              let bgColor = "bg-white";
-              let numberColor = "text-gray-700";
+                // Definir colores según el ranking absoluto
+                let bgColor = "bg-white";
+                let numberColor = "text-gray-700";
 
-              if (rank === 1) {
-                bgColor = "bg-yellow-200"; // oro
-                numberColor = "text-yellow-500 font-bold";
-              } else if (rank === 2) {
-                bgColor = "bg-gray-200"; // plata
-                numberColor = "text-gray-500 font-bold";
-              } else if (rank === 3) {
-                bgColor = "bg-orange-200"; // bronce
-                numberColor = "text-orange-500 font-bold";
-              }
+                if (rank === 1) {
+                  bgColor = "bg-yellow-200"; // oro
+                  numberColor = "text-yellow-500 font-bold";
+                } else if (rank === 2) {
+                  bgColor = "bg-gray-200"; // plata
+                  numberColor = "text-gray-500 font-bold";
+                } else if (rank === 3) {
+                  bgColor = "bg-orange-200"; // bronce
+                  numberColor = "text-orange-500 font-bold";
+                }
 
-              return (
-                <div
-                  key={user.displayName}
-                  style={{ height: ITEM_HEIGHT }}
-                  className={`flex items-center justify-between p-3 ${bgColor} rounded-xl shadow hover:shadow-lg transition-shadow duration-200`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`text-lg font-semibold ${numberColor}`}>
-                      {rank}.
-                    </span>
-                    <img
-                      src={avatars[user.avatar]}
-                      alt={user.displayName}
-                      className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gray-200"
-                    />
-                    <span className="text-gray-800 text-sm md:text-base">
-                      {user.displayName}
-                    </span>
+                return (
+                  <div
+                    key={user.displayName}
+                    style={{ height: ITEM_HEIGHT }}
+                    className={`flex items-center justify-between p-3 ${bgColor} rounded-xl shadow hover:shadow-lg transition-shadow duration-200`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`text-lg font-semibold ${numberColor}`}>
+                        {rank}.
+                      </span>
+                      <img
+                        src={avatars[user.avatar]}
+                        alt={user.displayName}
+                        className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gray-200"
+                      />
+                      <span className="text-gray-800 text-sm md:text-base">
+                        {user.displayName}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-1 md:flex-row md:gap-4 items-end">
+                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs md:text-sm">
+                        <span className="inline md:hidden">Capt:</span>
+                        <span className="hidden md:inline">Captured:</span>{" "}
+                        {user.obtained}
+                      </span>
+                      <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs md:text-sm">
+                        <span className="inline md:hidden">Seen:</span>
+                        <span className="hidden md:inline">Seen:</span>{" "}
+                        {user.seen}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1 md:flex-row md:gap-4 items-end">
-                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs md:text-sm">
-                      <span className="inline md:hidden">Capt:</span>
-                      <span className="hidden md:inline">Captured:</span>{" "}
-                      {user.obtained}
-                    </span>
-                    <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded-full text-xs md:text-sm">
-                      <span className="inline md:hidden">Seen:</span>
-                      <span className="hidden md:inline">Seen:</span>{" "}
-                      {user.seen}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {/* Filas vacías */}
-            {Array.from({ length: ITEMS_PER_PAGE - users.length }).map(
-              (_, i) => (
+              {/* Filas vacías */}
+              {Array.from({
+                length: ITEMS_PER_PAGE - displayedUsers.length,
+              }).map((_, i) => (
                 <div key={`empty-${i}`} style={{ height: ITEM_HEIGHT }} />
-              )
-            )}
-          </motion.div>
-        </AnimatePresence>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </motion.div>
 
       <div className="flex justify-between items-center mt-4">

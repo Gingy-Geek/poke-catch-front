@@ -7,7 +7,6 @@ import Filter from "../../assets/filter.png";
 
 const Pokedex = () => {
   const { newPokemonRender, setNewPokemonRender, user } = useUser();
-  if(!user) return
   const [page, setPage] = useState(1);
   const [isShinyList, setIsShinyList] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -61,6 +60,7 @@ const Pokedex = () => {
     if (!user) return allIds;
 
     return allIds.filter((id) => {
+    if (!user.pokedex) return false; 
       const poke = user.pokedex[id];
       const variantKey = isShinyList ? "shiny" : "normal";
 

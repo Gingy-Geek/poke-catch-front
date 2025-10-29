@@ -1,6 +1,6 @@
 // src/pages/Home.tsx
 import { auth } from "../firebase";
-import { signOut} from "firebase/auth";
+import { signOut } from "firebase/auth";
 
 import { Navigate, useNavigate } from "react-router-dom";
 import ScreenGame from "../components/Home/ScreenGame";
@@ -13,7 +13,6 @@ export default function Home() {
   const { user, setUser, loading } = useUser();
   const navigate = useNavigate();
 
-  
   const logout = async () => {
     try {
       await signOut(auth);
@@ -22,11 +21,16 @@ export default function Home() {
     }
 
     sessionStorage.removeItem("guestSession");
-    setUser(null)
+    setUser(null);
     navigate("/");
   };
 
-  if (loading) return <LoadingPokeball />;
+  if (loading)
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-transparent z-50">
+        <LoadingPokeball />{" "}
+      </div>
+    );
   if (!user) return <Navigate to="/login" />;
 
   return (
@@ -35,8 +39,17 @@ export default function Home() {
         <div className="w-full h-[100%] md:w-1/2 flex flex-col justify-center items-center">
           <div className="w-full h-[100%] lg:w-3/4 relative">
             <ScreenGame />
-            <div style={{position: 'absolute', background:'#d9d9d9', width:'100%', height:'45px', bottom:'26%', zIndex:'-1'}}></div>
-            <UserInfo logout={logout}/>
+            <div
+              style={{
+                position: "absolute",
+                background: "#d9d9d9",
+                width: "100%",
+                height: "45px",
+                bottom: "26%",
+                zIndex: "-1",
+              }}
+            ></div>
+            <UserInfo logout={logout} />
           </div>
         </div>
 

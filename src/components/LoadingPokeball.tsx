@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export default function LoadingPokeball() {
   return (
-    <div className="flex flex-col items-center justify-center h-full py-10">
+    <div className="flex flex-col items-center justify-center h-full w-full">
       {/* Pokéball */}
       <motion.div
         animate={{ rotate: 360 }}
@@ -19,7 +19,7 @@ export default function LoadingPokeball() {
       </motion.div>
 
       {/* Texto */}
-      <p className="mt-4 text-gray-700 font-semibold tracking-wide">
+      <p className="mt-4 text-gray-700 font-semibold tracking-wide text-center">
         Loading...
       </p>
     </div>

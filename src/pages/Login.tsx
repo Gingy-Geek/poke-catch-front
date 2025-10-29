@@ -14,7 +14,7 @@ export default function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
   const { user, setUser } = useUser();
   const [loading, setLoading] = useState(false);
-  const [showServerMsg, setShowServerMsg] = useState(false);
+  const [wakingServerMsg, setWakingServerMsg] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [displayName, setDisplayName] = useState("");
@@ -24,17 +24,13 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  const saveUserToBackend = async (
-    uid: string,
-    displayName: string,
-    avatar: number
-  ) => {
+  const saveUserToBackend = async (uid: string,displayName: string,avatar: number) => {
     try {
-      setLoading(true)
-      setShowServerMsg(false);
+      setLoading(true);
+      setWakingServerMsg(false);
 
       // Muestra el mensaje del servidor después de 2 segundos
-      const msgTimer = setTimeout(() => setShowServerMsg(true), 2000);
+      const msgTimer = setTimeout(() => setWakingServerMsg(true), 2000);
 
       const res = await fetch(`${API_URL}/api/users`, {
         method: "POST",
@@ -42,41 +38,58 @@ export default function Login() {
         body: JSON.stringify({ uid, displayName, avatar }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        // El backend devolvió 400, 500, etc.
+        console.error("Error del backend:", data.error || data.message);
+        alert("Back error: " + (data.error || data.message))
+        setWakingServerMsg(true);
+        return;
+      }
       setUser(data);
 
       clearTimeout(msgTimer);
     } catch (err) {
       console.error("Error saving user to backend:", err);
     } finally {
-      setLoading(false); 
-      setShowServerMsg(false);
+      setLoading(false);
+      setWakingServerMsg(false);
     }
   };
 
   const loginGoogle = async () => {
     try {
-      
       const result = await signInWithPopup(auth, googleProvider);
       const currentUser = result.user;
       const name = currentUser.displayName ?? "Unknown Trainer";
-      
-      // Guardar temporalmente UID
+
       setTempUID(currentUser.uid);
-      
-      // Chequear si existe en backend
+
       setLoading(true);
-      setShowServerMsg(false);
+      setWakingServerMsg(false);
+
       const res = await fetch(`${API_URL}/api/users/${currentUser.uid}`);
+
       if (res.status === 404) {
         // Usuario nuevo de Google
-        setDisplayName(name); // prefill con nombre de Google
+        setDisplayName(name);
         setShowProfileModal(true);
+      } else if (!res.ok) {
+        console.error("Error fetching user:", res.status, res.statusText);
+        throw new Error("fetching user" + res.status +" "+ res.statusText)
       } else {
         const data = await res.json();
+        // Validar que data exista
+        if (!data) {
+          console.error("User data is empty");
+          setWakingServerMsg(true);
+          return;
+        }
         setUser(data);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
+      alert("Error: " + error)
+      setWakingServerMsg(true);
     } finally {
       if (!showProfileModal) {
         setLoading(false);
@@ -145,10 +158,10 @@ export default function Login() {
     let cancelTimer: ReturnType<typeof setTimeout>;
 
     if (loading) {
-      msgTimer = setTimeout(() => setShowServerMsg(true), 2000);
+      msgTimer = setTimeout(() => setWakingServerMsg(true), 2000);
       cancelTimer = setTimeout(() => setShowCancel(true), 10000);
     } else {
-      setShowServerMsg(false);
+      setWakingServerMsg(false);
       setShowCancel(false);
     }
 
@@ -300,10 +313,10 @@ export default function Login() {
               {/* Mensaje de servidor */}
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: showServerMsg ? 1 : 0 }}
+                animate={{ opacity: wakingServerMsg ? 1 : 0 }}
                 transition={{ duration: 0.8 }}
               >
-                {showServerMsg && (
+                {wakingServerMsg && (
                   <p className="text-sm text-gray-500 mt-1">
                     Waking up the server, this might take a moment ☕
                   </p>

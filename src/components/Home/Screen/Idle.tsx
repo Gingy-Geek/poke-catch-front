@@ -1,62 +1,93 @@
 import questionMark from "../../../assets/question.png";
 import playIcon from "../../../assets/playIcon.png";
 import type { UserData } from "../../../models/UserData";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const Idle = ({ play, user, setUser }: { play: () => void; user: UserData | null; setUser: (user:UserData | null) => void }) => {
+const Idle = ({
+  play,
+  user,
+  setUser,
+}: {
+  play: () => void;
+  user: UserData | null;
+  setUser: (user: UserData | null) => void;
+}) => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [isResetting, setIsResetting] = useState<boolean>(
+    !!user?.rollResetAt && user.rollResetAt <= Date.now()
+  );
   const API_URL = import.meta.env.VITE_API_URL;
+  const hasReset = useRef<boolean>(false);
+
+
 
   useEffect(() => {
-    if (!user?.rollResetAt) return;
+    if (!user || !user.rollResetAt) return;
+    if (hasReset.current) return; // ya llamamos al backend
+ 
 
-    let hasReset = false; // variable local para evitar múltiples llamadas
+    const resetBackend = async () => {
+      if (hasReset.current) return;
+      hasReset.current = true;
+      setIsResetting(true);
+      
+      const startTime = Date.now();
+      try {
+        const res = await fetch(
+          `${API_URL}/api/users/${user!.uid}/resetRolls`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-    const interval = setInterval(async () => {
-      if (!user?.rollResetAt) {
-        setTimeLeft(null);
-        clearInterval(interval);
-        return;
+        const data = await res.json();
+
+        if (!res.ok) {
+          console.error("Error al resetear tiradas:", data.error);
+          setIsResetting(false);
+          return;
+        }
+
+        // aseguramos mínimo delay de 1.5s
+        const elapsed = Date.now() - startTime;
+        const minDelay = 1500;
+        if (elapsed < minDelay) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, minDelay - elapsed)
+          );
+        }
+
+        setUser(data); // actualizamos estado del usuario
+      } catch (err) {
+        console.error("Error al resetear tiradas:", err);
+      } finally {
+        setIsResetting(false);
       }
+    };
 
+    const updateTime = () => {
+      if (!user?.rollResetAt) return 0;
       const diff = user.rollResetAt - Date.now();
       setTimeLeft(diff > 0 ? diff : 0);
+      return diff;
+    };
 
-      if (diff <= 0 && !hasReset) {
-        hasReset = true;
+    // Revisamos al montar
+    const diffInitial = updateTime();
+    if (diffInitial <= 0) {
+      resetBackend();
+      return; // no necesitamos setInterval
+    }
+
+    // Si no expiró, empezamos el contador
+    const interval = setInterval(() => {
+      const diff = updateTime();
+      if (diff <= 0) {
         clearInterval(interval);
-        console.log("TERMINO, llamando al backend...");
-
-        try {
-          const res = await fetch(
-            `${API_URL}/api/users/${user.uid}/resetRolls`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            }
-          );
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            console.error("Error al resetear tiradas:", data.error);
-            return; // no hacemos setUser
-          }
-
-          setUser(data); // solo si todo salió bien
-        } catch (err) {
-          console.error("Error al resetear tiradas:", err);
-        }
+        resetBackend();
       }
     }, 1000);
-
-    // Ejecutamos inmediatamente para no esperar 1s
-    const diffInitial = user.rollResetAt - Date.now();
-    setTimeLeft(diffInitial > 0 ? diffInitial : 0);
-    if (diffInitial <= 0 && !hasReset) {
-      hasReset = true;
-      clearInterval(interval);
-    }
 
     return () => clearInterval(interval);
   }, [user?.rollResetAt]);
@@ -76,12 +107,15 @@ const Idle = ({ play, user, setUser }: { play: () => void; user: UserData | null
 
   // Mensaje que se muestra
   const getMessage = () => {
-    if (user?.dailyCatches && user.dailyCatches > 0) return "Let’s catch!";
+    if (isResetting) return "Refilling Pokéballs…";
+    if (user && user.dailyCatches > 0) return "Let’s catch!";
     if (timeLeft !== null && timeLeft > 0)
       return `Out of catches! Rolls reset in ${formatTime(timeLeft)}`;
+    return "Error :c, Click ME to try again";
   };
 
-  const isDisabled = user?.dailyCatches === 0 && (timeLeft ?? 0) > 0;
+  const isDisabled =
+    isResetting || (user?.dailyCatches === 0 && (timeLeft ?? 0) > 0);
 
   if (!user) return <div>Loading...</div>;
 

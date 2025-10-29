@@ -118,8 +118,6 @@ const ScreenGame = () => {
 
   const play = async () => {
     if (!user) return;
-    console.log(user.rollResetAt);
-    
     setLoading(true);
     setPhase("searching");
     const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 2000));
