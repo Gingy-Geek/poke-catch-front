@@ -61,7 +61,7 @@ export const Pagination = ({ page, totalPages, setPage }: PaginationProps) => {
         beforeInjection={(svg) => configureSVG(svg)}
         onClick={handlePrev}
       />
-      <span className="text-3xl text-[#ffa2a2]">
+      <span className="text-2xl mx-[-3px] md:mx-0 md:text-3xl text-[#ffa2a2]">
         {page} / {totalPages}
       </span>
 

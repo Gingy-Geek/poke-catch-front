@@ -67,6 +67,8 @@ const ScreenGame = () => {
 
   const handleCatch = async (bonus: number) => {
     if (!pokemon || !user) return;
+        setPhase("catching");
+
 
     try {
       // Pasamos el bonus según la pokebola
@@ -102,11 +104,9 @@ const ScreenGame = () => {
       });
 
       if (data.caught) {
-        setPhase("catching");
         setAnimation(success);
         setTotalObtained(data.totalObtained);
       } else {
-        setPhase("catching");
         setAnimation(fail);
       }
     } catch (err) {

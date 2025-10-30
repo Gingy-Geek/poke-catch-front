@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import Modal from "react-modal";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import CloseIcon from "@mui/icons-material/Close";
@@ -32,6 +32,8 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
   if (!user) return null;
   const [selectedPoke, setSelectedPoke] = useState<PokemonData | null>(null);
   const [pokeData, setPokeData] = useState<PlaceHolder[]>([]);
+  const isMobile = window.innerWidth <= 768;
+  const listRef = useRef<HTMLDivElement>(null);
 
   const capitalizeFirstLetter = (word: string) => {
     return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -100,6 +102,9 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
       const data = listIds.map((id) => getPokeData(id));
       setPokeData(data);
       setRenderPokedex(false);
+      if (isMobile && listRef.current) {
+        listRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
   }, [renderPokedex]);
 
@@ -111,7 +116,7 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
   }, [listIds, isShinyList]);
 
   return (
-    <div className="w-full px-0">
+    <div ref={listRef} className="w-full px-0">
       <AnimatePresence mode="wait">
         {pokeData.length === 0 ? (
           <motion.div
