@@ -123,7 +123,7 @@ const UserInfo = ({ logout }: { logout: () => void }) => {
         onRequestClose={() => setIsOpen(false)}
         appElement={document.getElementById("root")!}
         className="bg-white rounded-xl shadow-lg p-6 w-[90%] md:w-[40%] text-center outline-none"
-        overlayClassName="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
       >
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Are you sure you want to log out?
@@ -148,7 +148,7 @@ const UserInfo = ({ logout }: { logout: () => void }) => {
         onRequestClose={handleCloseUserProfile}
         appElement={document.getElementById("root")!}
         className="bg-[#D9D9D9] rounded-xl p-6 w-[90%] md:w-[60%] lg:w-[35%] text-center outline-none relative"
-        overlayClassName="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
       >
         {/* Botón cerrar (opcional) */}
         <button

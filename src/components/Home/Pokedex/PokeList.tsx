@@ -197,7 +197,7 @@ const PokeList = ({ isShinyList, listIds }: PokeListProps) => {
         onRequestClose={() => setSelectedPoke(null)}
         appElement={document.getElementById("root")!}
         className="w-full md:w-3/4 xl:w-1/2 mx-auto md:my-20 outline-none"
-        overlayClassName="fixed inset-0 bg-black/50 z-10 flex items-center justify-center"
+        overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-sm z-10 flex items-center justify-center"
       >
         {selectedPoke && (
           <div className="flex flex-col mx-2">

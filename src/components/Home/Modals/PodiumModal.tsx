@@ -42,6 +42,7 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
       );
       if (!res.ok) throw new Error(`Error fetching chunk ${chunkIndex}`);
       const data = await res.json();
+      console.log("HOLAA")
       setAllUsers(data.users);
       setTotalUsers(data.total);
     } catch (err) {
@@ -93,7 +94,7 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
       onRequestClose={onClose}
       appElement={document.getElementById("root")!}
       className="bg-[#D9D9D9] rounded-xl p-6 w-[90%] md:w-[70%] xl:w-[45%] text-center outline-none relative"
-      overlayClassName="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
     >
       <button
         className="botones absolute right-[3%] top-[3%] flex"
@@ -111,7 +112,7 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
         className="flex flex-col justify-start gap-3"
         style={{ minHeight: ITEMS_PER_PAGE * ITEM_HEIGHT }}
       >
-        {loadingChunk && allUsers.length === 0 ? (
+        {loadingChunk ? (
           // Loader inicial
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-transparent z-50">
             <LoadingPokeball />
@@ -220,4 +221,3 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
 };
 
 export default PodiumModal;
-
