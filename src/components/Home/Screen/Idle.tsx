@@ -22,75 +22,78 @@ const Idle = ({
 
 
   useEffect(() => {
-    if (!user || !user.rollResetAt) return;
-    if (hasReset.current) return; // ya llamamos al backend
- 
+  if (!user || !user.rollResetAt) return;
+  if (hasReset.current) return; // ya llamamos al backend
 
-    const resetBackend = async () => {
-      if (hasReset.current) return;
-      hasReset.current = true;
-      setIsResetting(true);
-      
-      const startTime = Date.now();
-      try {
-        const res = await fetch(
-          `${API_URL}/api/users/${user!.uid}/resetRolls`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+  let interval: ReturnType<typeof setInterval> | null = null;
 
-        const data = await res.json();
+  const resetBackend = async () => {
+    if (hasReset.current) return;
+    hasReset.current = true;
+    setIsResetting(true);
 
-        if (!res.ok) {
-          console.error("Error al resetear tiradas:", data.error);
-          setIsResetting(false);
-          return;
-        }
+    const startTime = Date.now();
+    try {
+      const res = await fetch(`${API_URL}/api/users/${user.uid}/resetRolls`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
 
-        // aseguramos mínimo delay de 1.5s
-        const elapsed = Date.now() - startTime;
-        const minDelay = 1500;
-        if (elapsed < minDelay) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, minDelay - elapsed)
-          );
-        }
+      const data = await res.json();
 
-        setUser(data); // actualizamos estado del usuario
-      } catch (err) {
-        console.error("Error al resetear tiradas:", err);
-      } finally {
+      if (!res.ok) {
+        console.error("Error al resetear tiradas:", data.error);
         setIsResetting(false);
+        return;
       }
-    };
 
-    const updateTime = () => {
-      if (!user?.rollResetAt) return 0;
-      const diff = user.rollResetAt - Date.now();
-      setTimeLeft(diff > 0 ? diff : 0);
-      return diff;
-    };
+      // aseguramos mínimo delay de 1.5s
+      const elapsed = Date.now() - startTime;
+      const minDelay = 1500;
+      if (elapsed < minDelay) {
+        await new Promise((resolve) => setTimeout(resolve, minDelay - elapsed));
+      }
 
-    // Revisamos al montar
+      console.log(data, "BACK");
+      setUser(data); // actualizamos estado del usuario
+    } catch (err) {
+      console.error("Error al resetear tiradas:", err);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const updateTime = () => {
+    if (!user?.rollResetAt) return 0;
+    const diff = user.rollResetAt - Date.now();
+    setTimeLeft(diff > 0 ? diff : 0);
+    return diff;
+  };
+
+  const run = async () => {
     const diffInitial = updateTime();
+
     if (diffInitial <= 0) {
-      resetBackend();
-      return; // no necesitamos setInterval
+      await resetBackend();
+      return;
     }
 
-    // Si no expiró, empezamos el contador
-    const interval = setInterval(() => {
+    interval = setInterval(async () => {
       const diff = updateTime();
       if (diff <= 0) {
-        clearInterval(interval);
-        resetBackend();
+        if (interval) clearInterval(interval);
+        await resetBackend();
       }
     }, 1000);
+  };
 
-    return () => clearInterval(interval);
-  }, [user?.rollResetAt]);
+  run(); 
+
+  return () => {
+    if (interval) clearInterval(interval);
+  };
+}, [user?.rollResetAt]);
+
 
   // Formatea ms a hh:mm:ss
   const formatTime = (ms: number) => {
@@ -107,6 +110,9 @@ const Idle = ({
 
   // Mensaje que se muestra
   const getMessage = () => {
+    console.log(user);
+    console.log(user?.dailyCatches);
+    
     if (isResetting) return "Refilling Pokéballs…";
     if (user && user.dailyCatches > 0) return "Let’s catch!";
     if (timeLeft !== null && timeLeft > 0)
