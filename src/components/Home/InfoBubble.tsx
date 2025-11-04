@@ -71,7 +71,7 @@ const InfoBubble = () => {
             <span className="text-black">Catches per day:</span> 5
           </p>
           <p className="text-xs md:text-base mb-2">
-            <span className="text-black">Additional Masterballs per day:</span> 2
+            <span className="text-black">Additional Masterballs per day:</span> 1 (max.: 3)
           </p>
         </div>
       )}
@@ -80,3 +80,4 @@ const InfoBubble = () => {
 };
 
 export default InfoBubble;
+
