@@ -110,9 +110,6 @@ const Idle = ({
 
   // Mensaje que se muestra
   const getMessage = () => {
-    console.log(user);
-    console.log(user?.dailyCatches);
-    
     if (isResetting) return "Refilling Pokéballs…";
     if (user && user.dailyCatches > 0) return "Let’s catch!";
     if (timeLeft !== null && timeLeft > 0)
@@ -162,3 +159,4 @@ const Idle = ({
 };
 
 export default Idle;
+
