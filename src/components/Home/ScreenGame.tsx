@@ -17,6 +17,7 @@ import PokedexUpdated from "./Screen/PokedexUpdated";
 import { getTypeColor } from "../../utils/typeColors";
 import InfoBubble from "./InfoBubble";
 import type { PokemonData } from "../../models/UserData";
+import LoadingPokeball from "../LoadingPokeball";
 type Phases =
   | "idle"
   | "searching"
@@ -32,6 +33,7 @@ const ScreenGame = () => {
   const [dummyPokedex, setDummyPokedex] = useState(user.pokedex || {});
   const [pokemon, setPokemon] = useState<Pokemon | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingCatching, setLoadingCatching] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<string>("Searching...");
   const [phase, setPhase] = useState<Phases>("idle");
   const [animation, setAnimation] = useState<string>("");
@@ -67,9 +69,7 @@ const ScreenGame = () => {
 
   const handleCatch = async (bonus: number) => {
     if (!pokemon || !user) return;
-        setPhase("catching");
-
-
+    setLoadingCatching(true)
     try {
       // Pasamos el bonus según la pokebola
       const res = await fetch(`${API_URL}/api/users/catchPokemon`, {
@@ -85,7 +85,6 @@ const ScreenGame = () => {
       });
 
       const data = await res.json();
-      console.log(data);
       setCaught(data.caught);
 
       //  actualizar el dummyPokedex
@@ -109,10 +108,13 @@ const ScreenGame = () => {
       } else {
         setAnimation(fail);
       }
+      setPhase("catching");
     } catch (err) {
       console.error(err);
       alert("Error en la captura");
       reset();
+    } finally{
+      setLoadingCatching(false)
     }
   };
 
@@ -193,6 +195,7 @@ const ScreenGame = () => {
       style={{ background: getTypeColor(pokemon?.types) }}
     >
       <InfoBubble />
+
       {phase == "idle" ? (
         <Idle play={play} user={user} setUser={setUser} />
       ) : phase == "searching" && loading ? (
@@ -203,7 +206,9 @@ const ScreenGame = () => {
           pokemon={pokemon!}
           user={user!}
         />
-      ) : phase == "catching" ? (
+      ) : loadingCatching ? (
+        <LoadingPokeball/>
+      ) : phase == "catching" && !loadingCatching ? (
         <Catching animation={animation} setPhase={setPhase} />
       ) : phase == "finished" ? (
         <Finished pokemon={pokemon!} caught={caught} nextScreen={nextScreen} />

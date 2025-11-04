@@ -111,7 +111,8 @@ const Idle = ({
     if (user && user.dailyCatches > 0) return "Let’s catch!";
     if (timeLeft !== null && timeLeft > 0)
       return `Out of catches! Rolls reset in ${formatTime(timeLeft)}`;
-    return "Error :c, Click ME to try again";
+    console.error("Something wronge happen")
+    return "Error: restart the app";
   };
 
   const isDisabled =
