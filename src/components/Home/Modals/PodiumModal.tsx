@@ -42,7 +42,7 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
       );
       if (!res.ok) throw new Error(`Error fetching chunk ${chunkIndex}`);
       const data = await res.json();
-      setAllUsers((prev) => [...prev, ...data.users]);
+      setAllUsers(data.users);
       setTotalUsers(data.total);
     } catch (err) {
       console.error(err);
@@ -61,7 +61,7 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
 
   // Efecto para cargar primer chunk al abrir modal
   useEffect(() => {
-    if (isOpen && allUsers.length === 0) {
+    if (isOpen) {
       loadChunk(0);
       setPage(1);
     }
@@ -220,3 +220,4 @@ const PodiumModal: React.FC<PodiumModalProps> = ({ isOpen, onClose }) => {
 };
 
 export default PodiumModal;
+
