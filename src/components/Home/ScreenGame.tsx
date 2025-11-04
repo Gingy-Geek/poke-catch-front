@@ -70,6 +70,7 @@ const ScreenGame = () => {
   const handleCatch = async (bonus: number) => {
     if (!pokemon || !user) return;
     setLoadingCatching(true)
+    setPhase("catching");
     try {
       // Pasamos el bonus según la pokebola
       const res = await fetch(`${API_URL}/api/users/catchPokemon`, {
@@ -108,7 +109,6 @@ const ScreenGame = () => {
       } else {
         setAnimation(fail);
       }
-      setPhase("catching");
     } catch (err) {
       console.error(err);
       alert("Error en la captura");
@@ -206,7 +206,7 @@ const ScreenGame = () => {
           pokemon={pokemon!}
           user={user!}
         />
-      ) : loadingCatching ? (
+      ) : phase == "catching" && loadingCatching ? (
         <LoadingPokeball/>
       ) : phase == "catching" && !loadingCatching ? (
         <Catching animation={animation} setPhase={setPhase} />
